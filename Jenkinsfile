@@ -1,5 +1,9 @@
 pipeline {
     agent any
+    environment {
+        NETLIFY_AUTH_TOKEN = credentials('NETLIFY_AUTH_TOKEN')
+        NETLIFY_SITE_ID = credentials('NETLIFY_SITE_ID')
+    }
     stages {
         stage('Install') {
             steps {
@@ -17,10 +21,9 @@ pipeline {
             }
         }
         stage('Deploy') {
-    steps {
-        sh 'nohup serve -s build -l 3000 > /dev/null 2>&1 &'
-        echo 'App deployed at http://localhost:3000'
-    }
-}
+            steps {
+                sh 'netlify deploy --dir=build --prod --auth=$NETLIFY_AUTH_TOKEN --site=$NETLIFY_SITE_ID'
+            }
+        }
     }
 }
