@@ -18,7 +18,7 @@ pipeline {
         }
         stage('Deploy') {
     steps {
-        sh 'serve -s build -l 3000 &'
+        sh 'nohup serve -s build -l 3000 > /dev/null 2>&1 &'
         echo 'App deployed at http://localhost:3000'
     }
 }
