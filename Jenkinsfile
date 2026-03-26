@@ -63,27 +63,22 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to AWS') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    reuseNode true
-                    args '-u root --entrypoint=""'
-                }
-            }
-            
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'my-ecs-key', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) 
-                {   
-                    sh '''
-                        aws --version
-                        yum install jq -y
-                        
-                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://aws/task-definition.json | jq '.taskDefinition.revision')
-                        aws ecs update-service --cluster FinalReactApp-Cluster-Prod --service FinalReactApp-Service-Prod --task-definition FinalReactApp-TaskDefinition-Prod:$LATEST_TD_REVISION
-                    '''
-                }
-            }
+        stage('Deploy to AWS S3') {
+    agent {
+        docker {
+            image 'amazon/aws-cli'
+            reuseNode true
+            args '-u root --entrypoint=""'
         }
+    }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'my-ecs-key', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+            sh '''
+                aws --version
+                aws s3 sync build/ s3://dhairya-react-app --delete
+            '''
+        }
+    }
+}
     }
 }
